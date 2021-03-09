@@ -51,6 +51,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io.js" integrity="sha512-YybopSVjZU0fe8TY4YDuQbP5bhwpGBE/T6eBUEZ0usM72IWBfWrgVI13qfX4V2A/W7Hdqnm7PIOYOwP9YHnICw==" crossorigin="anonymous"></script>
 
     <script>
+        // regex para links
+        let is_link = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/;
 
         // formulario de usuario
         const userForm = document.getElementById('userForm');
@@ -137,10 +139,18 @@
         const drawMessage = (data = {}) => {
             let li = document.createElement('li');
             li.innerText = data.message;
+            // validar link
+            if (data.type == 'link') {
+                li.innerHTML = "";
+                let a = document.createElement('a');
+                a.target = '__blank';
+                a.href = data.message;
+                li.appendChild(a);
+            }
+            // agregar info
             list.appendChild(li);
             let small = document.createElement('small');
             let current_user = data.user;
-            console.log(current_user);
             small.innerText = current_user.nick;
             small.className = `badge rounded-pill`;
             small.style = `background: ${current_user.color}; margin-left: 1em;`;
@@ -162,7 +172,8 @@
             socket.emit('client@message', {
                 success: true,
                 user,
-                message: message.value || ""
+                message: message.value || ".",
+                type: is_link.test(message.value) ? "text" : "link"
             });
             // clear input
             message.value = "";
