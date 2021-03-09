@@ -144,6 +144,7 @@
                 li.innerHTML = "";
                 let a = document.createElement('a');
                 a.target = '__blank';
+                a.innerText = data.message;
                 a.href = data.message;
                 li.appendChild(a);
             }
