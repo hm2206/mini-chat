@@ -155,6 +155,7 @@
         // enviar mensaje
         form.addEventListener('submit', (evt) => {
             evt.preventDefault();
+            if (message.value && message.value.length < 3) alert("El mensaje debe tener al menos 3 caracteres");
             socket.emit('client@message', {
                 success: true,
                 user,
