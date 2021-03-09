@@ -10,20 +10,30 @@
 <body class="container">
     
     <h1 class="mt-5">
-        Mini Chat 
+        Mini Chat  <span class="ml-2 mr-2 btn btn-dark" id="userText">Invidado</span>
         <span id="status" class="btn btn-sm btn-outline-danger">Off</span>
     </h1>
     
     <hr>
 
-    <form id="myForm">
+    <form id="userForm">
         <div class="row">
+            <div class="col-3">
+                <input type="text" id="userId" placeholder="Nick" class="form-control">
+            </div>
+        </div>
+    </form>
+
+    <form id="myForm">
+        <div class="row mt-3">
+            <div class="col-12"></div>
+
             <div class="col-8">
-                <input type="text" id="txtMessage" placeholder="Mensaje" class="form-control">
+                <input type="text" id="txtMessage" placeholder="Mensaje" disabled class="form-control">
             </div>
 
             <div class="col-4">
-                <button class="btn btn-primary">
+                <button id="btnMessage" class="btn btn-primary" disabled>
                     Enviar
                 </button>
             </div>
@@ -42,6 +52,12 @@
 
     <script>
 
+        // formulario de usuario
+        const userForm = document.getElementById('userForm');
+        const userId = document.getElementById('userId');
+        const userText = document.getElementById('userText');
+
+        // lista de status
         const list_status = {
             on: {
                 className: "btn btn-sm btn-outline-success",
@@ -53,9 +69,23 @@
             },
         }
 
+        // lista de colores
+        const list_colors = ["#c62828", "#e91e63", "#6a1b9a", "#311b92", "#3f51b5", "#1565c0", "#d84315", "#388e3c", "#00695c", "#37474f"];
+
+        // generar color random
+        const getColor = () => {
+            let index = Math.round(Math.random() * 10);
+            return list_colors[index];
+        }
+
         // link
         const path = "/mini-chat/socket.io";
         const link = "https://sis.unia.edu.pe";
+        let user = {
+            id: "",
+            nick: "Invitado",
+            color: "#000"
+        };
 
         // socket client
         const socket = io(link, { path });
@@ -65,25 +95,61 @@
         const status = document.getElementById('status');
         const form = document.getElementById('myForm');
         const message = document.getElementById('txtMessage');
+        const btnMessage = document.getElementById('btnMessage');
         const list = document.getElementById('listMessage');
 
+        // enviar nombre de usuario
+        userForm.addEventListener('submit', (evt) => {
+            evt.preventDefault();
+            drawUser(userId.value);
+        });
+
+        // pintar usuario
+        const drawUser = (nick = "") => {
+            if (nick.length < 3) {
+                alert('El nick debe tener al menos 3 caracteres');
+                return false;
+            }
+            // cambiar user del texto
+            userText.innerText = nick;
+            // guardar user
+            user.nick = nick;
+            user.color = getColor();
+            console.log(user);
+            // agregar fondo
+            userText.style = `background: ${user.color}`;
+            // habilitar input de mensaje
+            message.disabled = false;
+            btnMessage.disabled = false;
+            userId.value = "";
+        }
+
         // escuchar estado del cliente
-        const handleStatus = (current = 'on') => {
+        const handleStatus = (current = 'on', data) => {
             let current_status = list_status[current];
             status.innerText = current_status.text;
             status.className = current_status.className;
+            user = data.user;
+            drawUser(user.nick);
         }
 
         // pintar mensaje
-        const drawMessage = (msg) => {
+        const drawMessage = (data = {}) => {
             let li = document.createElement('li');
-            li.innerText = msg;
+            li.innerText = data.message;
             list.appendChild(li);
+            let small = document.createElement('small');
+            let current_user = data.user;
+            console.log(current_user);
+            small.innerText = current_user.nick;
+            small.className = `badge rounded-pill`;
+            small.style = `background: ${current_user.color}; margin-left: 1em;`;
+            li.appendChild(small);
         }
 
         // connect initial
         socket.on('init', (data) => {
-            handleStatus('on');
+            handleStatus('on', data);
         });
 
         // enviar mensaje
@@ -91,6 +157,7 @@
             evt.preventDefault();
             socket.emit('client@message', {
                 success: true,
+                user,
                 message: message.value || ""
             });
             // clear input
@@ -98,7 +165,7 @@
         });
 
         // recibir mensaje
-        socket.on('server@message', (data) => drawMessage(data.message));
+        socket.on('server@message', (data) => drawMessage(data));
 
     </script>
 

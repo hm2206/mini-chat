@@ -16,7 +16,12 @@ class Sockets {
             socket.emit('init', {
                 success: true,
                 message: "Hola terrícola :3",
-                data: current_date
+                date: current_date,
+                user: {
+                    id: socket.id,
+                    nick: "Invitado",
+                    color: "#000000"
+                }
             });
 
             socket.on('client@message', (data) => {
