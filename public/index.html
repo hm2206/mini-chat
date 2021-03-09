@@ -54,11 +54,12 @@
         }
 
         // link
-        const link = "/mini-chat";
+        const path = "/mini-chat";
+        const link = "https://sis.unia.edu.pe";
 
         // socket client
-        const socket = io(link);
-        console.log(`socket escuchando en: ${link}`);
+        const socket = io(link, { path });
+        console.log(`socket escuchando en: ${path}/${link}`);
 
         // DOM
         const status = document.getElementById('status');
